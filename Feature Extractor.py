@@ -6,11 +6,12 @@ from mediapipe.tasks.python import vision
 import numpy as np
 import csv
 import os
+import time
 
 # -----------------------------
 # Setup MediaPipe
 # -----------------------------
-model_path = 'C:\\Users\\ChuTs\\OneDrive - Government of Ontario\\Desktop\\Current Projects\\The Posture Project\\pose_landmarker_full.task'
+model_path = 'C:\\Users\\ChuTs\\OneDrive - Government of Ontario\\Desktop\\Current Projects\\The-Posture-Project-\\pose_landmarker_full.task'
 
 BaseOptions = mp.tasks.BaseOptions
 PoseLandmarker = mp.tasks.vision.PoseLandmarker
@@ -32,16 +33,18 @@ cap = cv2.VideoCapture(0)
 # -----------------------------
 csv_file = "posture_data.csv"
 
-if not os.path.exists(csv_file):
-	with open(csv_file, "w", newline="") as f:
-		writer = csv.writer(f)
-		writer.writerow([
-        	"neck_angle",
-        	"normalized_neck_length",
-        	"shoulder_width",
-        	"head_tilt",
-        	"nose_depth"
-    	])
+
+with open(csv_file, "w", newline="") as f:
+	writer = csv.writer(f)
+	writer.writerow([
+		"neck_angle",
+		"normalized_neck_length",
+		"shoulder_width",
+		"head_tilt",
+		"nose_depth",
+		"left_shoulder_depth",
+		"right_shoulder_depth"
+	])
 
 # -----------------------------
 # Helper functions
@@ -53,6 +56,8 @@ def angle_between(v1, v2):
 	v1 = v1 / (np.linalg.norm(v1) + 1e-6)
 	v2 = v2 / (np.linalg.norm(v2) + 1e-6)
 	return np.degrees(np.arccos(np.clip(np.dot(v1, v2), -1.0, 1.0)))
+
+count = 0
 
 # -----------------------------
 # Main loop
@@ -69,9 +74,9 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 		result = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
 		
-
-		landmarks = landmarker.detect_for_video(result, timestamp).pose_landmarks[0]
-		print(len(landmarks))
+		landmarksorg = landmarker.detect_for_video(result, timestamp)
+		landmarks = landmarksorg.pose_landmarks[0]
+		realworld_landmarks = landmarksorg.pose_world_landmarks[0]
 
 		# Key landmarks
 		nose = landmarks[0]
@@ -79,6 +84,11 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		right_shoulder = landmarks[12]
 		left_ear = landmarks[7]
 		right_ear = landmarks[8]
+
+		# Key world landmarks
+		nose_world = realworld_landmarks[0]
+		left_shoulder_world = realworld_landmarks[11]
+		right_shoulder_world = realworld_landmarks[12]
 
 		# Convert to pixels
 		nose_p = to_pixel(nose, w, h)
@@ -144,6 +154,20 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 		cv2.putText(frame, f"Angle: {int(neck_angle)}", (30, 90),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder.z:.2f}", (30, 170),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder.z:.2f}", (30, 210),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		
+		#World
+		# cv2.putText(frame, f"Nose depth: {nose_world.z:.2f}", (int(w*0.4), 130),
+		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		# cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_world.z:.2f}", (int(w*0.4), 170),
+		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		# cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_world.z:.2f}", (int(w*0.4), 210),
+		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
 		# -----------------------------
 		# Save features
@@ -155,10 +179,21 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 				normalized_neck_length,
 				shoulder_width,
 				head_tilt,
-				nose_depth
+				nose_depth,
+				left_shoulder.z,
+				right_shoulder.z
 			])
+		
+		count +=1
 
 		cv2.imshow("Posture Detection", frame)
+
+		if count == 1000:
+			print("Now slouch")
+			time.sleep(5)  # Give user time to change posture
+		
+		if count >= 2000:
+			break
 
 		if cv2.waitKey(1) & 0xFF == ord("q"):
 			break
