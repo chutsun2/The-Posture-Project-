@@ -172,7 +172,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
 		# -----------------------------
-		# Save features
+		# Save the features
 		# -----------------------------
 		with open(csv_file, "a", newline="") as f:
 			writer = csv.writer(f)
