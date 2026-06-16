@@ -129,6 +129,8 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# Feature 5: Depth
 		# -----------------------------
 		nose_depth = nose.z
+		left_shoulder_depth = left_shoulder.z
+		right_shoulder_depth = right_shoulder.z
 
 		# -----------------------------
 		# Classification (simple rule)
@@ -156,9 +158,9 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 		cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder.z:.2f}", (30, 170),
+		cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_depth:.2f}", (30, 170),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder.z:.2f}", (30, 210),
+		cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_depth:.2f}", (30, 210),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 		
 		#World
