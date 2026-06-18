@@ -31,7 +31,8 @@ cap = cv2.VideoCapture(0)
 # -----------------------------
 # CSV file setup
 # -----------------------------
-csv_file = "posture_data.csv"
+height = input("Enter height option, 1 for high 2 for low: ")
+csv_file = f"posture_data_{height}.csv"
 
 
 with open(csv_file, "w", newline="") as f:
@@ -131,6 +132,10 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		nose_depth = nose.z
 		left_shoulder_depth = left_shoulder.z
 		right_shoulder_depth = right_shoulder.z
+
+		#-----------------------------
+		# Feature 6
+		#-----------------------------
 
 		# -----------------------------
 		# Classification (simple rule)
