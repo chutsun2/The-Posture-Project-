@@ -7,6 +7,7 @@ import numpy as np
 import csv
 import os
 import time
+import math
 
 # -----------------------------
 # Setup MediaPipe
@@ -31,7 +32,7 @@ cap = cv2.VideoCapture(0)
 # -----------------------------
 # CSV file setup
 # -----------------------------
-height = input("Enter height option, 1 for high 2 for low: ")
+height = input("Enter height option, 1 for high 2 for low, 3 for test: ")
 csv_file = f"posture_data_{height}.csv"
 
 
@@ -40,6 +41,7 @@ with open(csv_file, "w", newline="") as f:
 	writer.writerow([
 		"neck_angle",
 		"normalized_neck_length",
+		"normalized_neck_length_2",
 		"shoulder_width",
 		"head_tilt",
 		"nose_depth",
@@ -53,12 +55,33 @@ with open(csv_file, "w", newline="") as f:
 def to_pixel(lm, w, h):
 	return np.array([int(lm.x * w), int(lm.y * h)])
 
-def angle_between(v1, v2):
-	v1 = v1 / (np.linalg.norm(v1) + 1e-6)
-	v2 = v2 / (np.linalg.norm(v2) + 1e-6)
-	return np.degrees(np.arccos(np.clip(np.dot(v1, v2), -1.0, 1.0)))
 
+def signed_angle(v1, v2):
+    # normalize (optional but keeps things stable)
+    v1 = v1 / (np.linalg.norm(v1) + 1e-6)
+    v2 = v2 / (np.linalg.norm(v2) + 1e-6)
+
+    dot = np.dot(v1, v2)
+    cross = v1[0]*v2[1] - v1[1]*v2[0]
+
+    angle = np.arctan2(cross, dot)  # radians
+    return np.degrees(angle)
+
+
+
+def rotate(v, theta):
+    R = np.array([
+        [np.cos(theta), -np.sin(theta)],
+        [np.sin(theta),  np.cos(theta)]
+    ])
+    return R @ v
+
+# -----------------------------
+# Define variables
+# -----------------------------
 count = 0
+max_shoulder_width = 0
+max_neck_length = 0
 
 # -----------------------------
 # Main loop
@@ -103,8 +126,8 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# -----------------------------
 		shoulder_mid = (ls_p + rs_p) / 2
 		neck_vector = nose_p - shoulder_mid
-		vertical = np.array([0, -1])
-		neck_angle = angle_between(neck_vector, vertical)
+		vertical = np.array([0, 1])
+		neck_angle = signed_angle(neck_vector, vertical)
 
 		# -----------------------------
 		# Feature 2: Neck length
@@ -114,17 +137,15 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# -----------------------------
 		# Feature 3: Shoulder width
 		# -----------------------------
-		shoulder_width = np.linalg.norm(ls_p - rs_p)
+		shoulder_width = abs(ls_p[0] - rs_p[0])
 
-		# Normalize neck length
-		normalized_neck_length = neck_length / (shoulder_width + 1e-6)
 
 		# -----------------------------
 		# Feature 4: Head tilt
 		# -----------------------------
 		ear_vector = re_p - le_p
 		horizontal = np.array([1, 0])
-		head_tilt = angle_between(ear_vector, horizontal)
+		head_tilt = signed_angle(ear_vector, horizontal)
 
 		# -----------------------------
 		# Feature 5: Depth
@@ -134,8 +155,22 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		right_shoulder_depth = right_shoulder.z
 
 		#-----------------------------
-		# Feature 6
+		# Transformed Features
 		#-----------------------------
+		if max_shoulder_width < shoulder_width:
+			max_shoulder_width = shoulder_width
+	
+		shoulder_component_1_length = shoulder_width
+		shoulder_component_2_length = math.sqrt(max_shoulder_width**2 - shoulder_component_1_length**2)
+		cosine_angle = shoulder_component_2_length / (max_shoulder_width + 1e-6)
+		neck_y_component_length = math.sqrt(neck_length**2 - shoulder_component_2_length**2 + (cosine_angle*shoulder_component_2_length)**2)
+		normalized_neck_length = neck_y_component_length / (max_shoulder_width + 1e-6)
+
+		normalized_neck_length_2 = neck_length / (max_shoulder_width + 1e-6)
+
+		
+
+		
 
 		# -----------------------------
 		# Classification (simple rule)
@@ -184,6 +219,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 			writer.writerow([
 				neck_angle,
 				normalized_neck_length,
+				normalized_neck_length_2,
 				shoulder_width,
 				head_tilt,
 				nose_depth,
@@ -196,6 +232,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		cv2.imshow("Posture Detection", frame)
 
 		if count == 1000:
+			break
 			print("Now slouch")
 			time.sleep(5)  # Give user time to change posture
 		
