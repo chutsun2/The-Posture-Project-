@@ -8,11 +8,12 @@ import csv
 import os
 import time
 import math
+import datetime
 
 # -----------------------------
 # Setup MediaPipe
 # -----------------------------
-model_path = 'C:\\Users\\ChuTs\\OneDrive - Government of Ontario\\Desktop\\Current Projects\\The-Posture-Project-\\pose_landmarker_full.task'
+model_path = 'C:\\Users\\Henry\\OneDrive\\Desktop\\Project\\The-Posture-Project-\\pose_landmarker_full.task'
 
 BaseOptions = mp.tasks.BaseOptions
 PoseLandmarker = mp.tasks.vision.PoseLandmarker
@@ -39,9 +40,9 @@ csv_file = f"posture_data_{height}.csv"
 with open(csv_file, "w", newline="") as f:
 	writer = csv.writer(f)
 	writer.writerow([
-		"neck_angle",
 		"normalized_neck_length",
-		"normalized_neck_length_2",
+		"nose_depth",
+		"neck_angle",
 		"shoulder_width",
 		"head_tilt",
 		"nose_depth",
@@ -52,8 +53,6 @@ with open(csv_file, "w", newline="") as f:
 # -----------------------------
 # Helper functions
 # -----------------------------
-def to_pixel(lm, w, h):
-	return np.array([int(lm.x * w), int(lm.y * h)])
 
 
 def signed_angle(v1, v2):
@@ -69,12 +68,71 @@ def signed_angle(v1, v2):
 
 
 
-def rotate(v, theta):
+def rotate_y(v, theta):
     R = np.array([
-        [np.cos(theta), -np.sin(theta)],
-        [np.sin(theta),  np.cos(theta)]
+        [ np.cos(theta), 0, np.sin(theta)],
+        [ 0,             1, 0            ],
+        [-np.sin(theta), 0, np.cos(theta)]
     ])
     return R @ v
+
+def to_pixel(lm, w, h):
+	return np.array([int(lm[0]*w), int(lm[1]*h)])
+
+def to_pixel_nontransformed(lm, w, h):
+	return np.array([int(lm.x * w), int(lm.y * h)])
+
+
+
+def transform(landmark, left_shoulder, right_shoulder):
+    # 1. Calculate the center point between shoulders to use as our local origin (0,0,0)
+    center_x = (left_shoulder.x + right_shoulder.x) / 2
+    center_y = (left_shoulder.y + right_shoulder.y) / 2
+    center_z = (left_shoulder.z + right_shoulder.z) / 2
+    
+    # 2. Calculate rotation angle based on shoulders
+    # Added math.atan2 for stability to avoid division-by-zero errors if shoulders align vertically
+    angle_of_rotation_of_body = math.atan2(
+        (left_shoulder.z - right_shoulder.z), 
+        (left_shoulder.x - right_shoulder.x)
+    )
+    
+    # 3. Shift the current landmark so the shoulder center is (0,0,0)
+    v = np.array([
+        landmark.x - center_x, 
+        landmark.y - center_y, 
+        landmark.z - center_z
+    ])
+    
+    # 4. Rotate around our new local origin
+    # We use negative angle to 'undo' your body's rotation and face the camera straight
+    rotated_array = rotate_y(v, -angle_of_rotation_of_body)
+    rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
+    rotated_array[1] = rotated_array[1] + center_y
+    rotated_array[2] = rotated_array[2] + center_z
+    
+    # 5. Calculate 3D inter-shoulder distance for scale normalization
+    inter_shoulder_distance = math.sqrt(
+        (left_shoulder.x - right_shoulder.x)**2 + 
+        (left_shoulder.y - right_shoulder.y)**2 + 
+        (left_shoulder.z - right_shoulder.z)**2
+    )
+    
+    # Prevent division by zero just in case MediaPipe glitches
+    if inter_shoulder_distance == 0:
+        inter_shoulder_distance = 1e-6
+        
+    # 6. Normalize by the shoulder width
+    normalized_x = rotated_array[0] / inter_shoulder_distance
+    normalized_y = rotated_array[1] / inter_shoulder_distance
+    normalized_z = rotated_array[2] / inter_shoulder_distance
+    # return normalized_x, normalized_y, normalized_z
+    print("Rotated coordinates:", rotated_array[0], rotated_array[1], rotated_array[2])
+    print("Non rotated coordinates:", landmark.x, landmark.y, landmark.z)
+    return rotated_array[0], rotated_array[1], rotated_array[2], angle_of_rotation_of_body, inter_shoulder_distance
+
+
+	
 
 # -----------------------------
 # Define variables
@@ -82,10 +140,17 @@ def rotate(v, theta):
 count = 0
 max_shoulder_width = 0
 max_neck_length = 0
+min_nose_depth = 10000000000000000000000
+output_dir = f"Frames"
+
 
 # -----------------------------
 # Main loop
 # -----------------------------
+
+os.makedirs(output_dir, exist_ok=True)
+print(f"Created new session folder: {output_dir}")
+
 with PoseLandmarker.create_from_options(options) as landmarker:
 	while cap.isOpened():
 		ret, frame = cap.read()
@@ -99,8 +164,19 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		result = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
 		
 		landmarksorg = landmarker.detect_for_video(result, timestamp)
-		landmarks = landmarksorg.pose_landmarks[0]
-		realworld_landmarks = landmarksorg.pose_world_landmarks[0]
+
+		# Check if pose_landmarks exists and is not empty
+		if landmarksorg.pose_landmarks and len(landmarksorg.pose_landmarks) > 0:
+			landmarks = landmarksorg.pose_landmarks[0]
+			realworld_landmarks = landmarksorg.pose_world_landmarks[0]
+			
+			# Put the rest of your posture processing code here
+			# e.g., neck_y_component_length = ratio * neck_vector[1]
+
+		else:
+			# Handle frames where no person is detected
+			print(f"No person detected at timestamp {timestamp}")
+			# You might want to 'continue' the loop or skip this frame
 
 		# Key landmarks
 		nose = landmarks[0]
@@ -109,17 +185,25 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		left_ear = landmarks[7]
 		right_ear = landmarks[8]
 
-		# Key world landmarks
-		nose_world = realworld_landmarks[0]
-		left_shoulder_world = realworld_landmarks[11]
-		right_shoulder_world = realworld_landmarks[12]
+		list_of_landmarks = [nose,left_shoulder, right_shoulder, left_ear, right_ear] 
+		transformed_features = [transform(lm, left_shoulder, right_shoulder) for lm in list_of_landmarks]
+
 
 		# Convert to pixels
-		nose_p = to_pixel(nose, w, h)
-		ls_p = to_pixel(left_shoulder, w, h)
-		rs_p = to_pixel(right_shoulder, w, h)
-		le_p = to_pixel(left_ear, w, h)
-		re_p = to_pixel(right_ear, w, h)
+		nose_p = to_pixel(transformed_features[0], w, h)
+		ls_p = to_pixel(transformed_features[1], w, h)
+		rs_p = to_pixel(transformed_features[2], w, h)
+		le_p = to_pixel(transformed_features[3], w, h)
+		re_p = to_pixel(transformed_features[4], w, h)
+
+		#Non-transformed pixel coordinates for depth features
+		nose_p_nontransformed = to_pixel_nontransformed(nose, w, h)
+		ls_p_nontransformed = to_pixel_nontransformed(left_shoulder, w, h)	
+		rs_p_nontransformed = to_pixel_nontransformed(right_shoulder, w, h)
+		le_p_nontransformed = to_pixel_nontransformed(left_ear, w, h)
+		re_p_nontransformed = to_pixel_nontransformed(right_ear, w, h)
+
+		
 
 		# -----------------------------
 		# Feature 1: Neck vector & angle
@@ -128,6 +212,12 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		neck_vector = nose_p - shoulder_mid
 		vertical = np.array([0, 1])
 		neck_angle = signed_angle(neck_vector, vertical)
+
+		#Non-transformed neck vector and angle for depth features
+		shoulder_mid_nontransformed = (ls_p_nontransformed + rs_p_nontransformed) / 2
+		neck_vector_nontransformed = nose_p_nontransformed - shoulder_mid_nontransformed
+		vertical_nontransformed = np.array([0, 1])
+		neck_angle_nontransformed = signed_angle(neck_vector_nontransformed, vertical_nontransformed)
 
 		# -----------------------------
 		# Feature 2: Neck length
@@ -157,18 +247,8 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		#-----------------------------
 		# Transformed Features
 		#-----------------------------
-		if max_shoulder_width < shoulder_width:
-			max_shoulder_width = shoulder_width
-	
-		shoulder_component_1_length = shoulder_width
-		shoulder_component_2_length = math.sqrt(max_shoulder_width**2 - shoulder_component_1_length**2)
-		cosine_angle = shoulder_component_2_length / (max_shoulder_width + 1e-6)
-		neck_y_component_length = math.sqrt(neck_length**2 - shoulder_component_2_length**2 + (cosine_angle*shoulder_component_2_length)**2)
-		normalized_neck_length = neck_y_component_length / (max_shoulder_width + 1e-6)
-
-		normalized_neck_length_2 = neck_length / (max_shoulder_width + 1e-6)
-
-		
+		# list_of_landmarks = [nose, left_shoulder, right_shoulder, left_ear, right_ear] 
+		# transformed_features = [transform(lm) for lm in list_of_landmarks]
 
 		
 
@@ -186,29 +266,22 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# Draw lines (visual debugging)
 		# -----------------------------
 		cv2.line(frame, tuple(shoulder_mid.astype(int)), tuple(nose_p), color, 2)
+		cv2.line(frame, tuple(shoulder_mid_nontransformed.astype(int)), tuple(nose_p_nontransformed), (255, 255, 0), 2)
 		cv2.line(frame, tuple(ls_p), tuple(rs_p), (255, 0, 0), 2)
 
 
 		# -----------------------------
 		# Display text
 		# -----------------------------
-		cv2.putText(frame, posture, (30, 50),
+		cv2.putText(frame, f"Angle {180 / math.pi * transformed_features[0][3]:.2f}", (30, 50),
 					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-		cv2.putText(frame, f"Angle: {int(neck_angle)}", (30, 90),
-					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
-					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_depth:.2f}", (30, 170),
-					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_depth:.2f}", (30, 210),
-					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		
-		#World
-		# cv2.putText(frame, f"Nose depth: {nose_world.z:.2f}", (int(w*0.4), 130),
+		# cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
 		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		# cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_world.z:.2f}", (int(w*0.4), 170),
+		# cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_depth:.2f}", (30, 170),
 		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		# cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_world.z:.2f}", (int(w*0.4), 210),
+		# cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_depth:.2f}", (30, 210),
+		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		# cv2.putText(frame, f"neck y component: {neck_vector[1]:.2f}", (30, 250),
 		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
 		# -----------------------------
@@ -217,9 +290,9 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		with open(csv_file, "a", newline="") as f:
 			writer = csv.writer(f)
 			writer.writerow([
+				transformed_features[0][1],  # Normalized neck length (y component)
+				nose.z,
 				neck_angle,
-				normalized_neck_length,
-				normalized_neck_length_2,
 				shoulder_width,
 				head_tilt,
 				nose_depth,
@@ -227,11 +300,16 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 				right_shoulder.z
 			])
 		
+		cv2.imshow("Posture Detection", frame) 
+
+		filename = os.path.join(output_dir, f"frame_{count:05d}.jpg")
+		cv2.imwrite(filename, frame)
+
+
 		count +=1
 
-		cv2.imshow("Posture Detection", frame)
 
-		if count == 1000:
+		if count == 500:
 			break
 			print("Now slouch")
 			time.sleep(5)  # Give user time to change posture
