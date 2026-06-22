@@ -84,7 +84,7 @@ def to_pixel_nontransformed(lm, w, h):
 
 
 
-def transform(landmark, left_shoulder, right_shoulder):
+def transform(landmark, left_shoulder, right_shoulder, is_nose = False):
     # 1. Calculate the center point between shoulders to use as our local origin (0,0,0)
     center_x = (left_shoulder.x + right_shoulder.x) / 2
     center_y = (left_shoulder.y + right_shoulder.y) / 2
@@ -92,7 +92,14 @@ def transform(landmark, left_shoulder, right_shoulder):
     
     # 2. Calculate rotation angle based on shoulders
     # Added math.atan2 for stability to avoid division-by-zero errors if shoulders align vertically
-    angle_of_rotation_of_body = math.atan2(
+	
+    if is_nose:
+        angle_of_rotation = math.atan2(
+			(landmark.z - center_z), 
+			(landmark.x - center_x)
+		) + math.pi/2  # +90 degrees to align with vertical axis
+    else:
+        angle_of_rotation = math.atan2(
         (left_shoulder.z - right_shoulder.z), 
         (left_shoulder.x - right_shoulder.x)
     )
@@ -106,7 +113,7 @@ def transform(landmark, left_shoulder, right_shoulder):
     
     # 4. Rotate around our new local origin
     # We use negative angle to 'undo' your body's rotation and face the camera straight
-    rotated_array = rotate_y(v, -angle_of_rotation_of_body)
+    rotated_array = rotate_y(v, angle_of_rotation)
     rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
     rotated_array[1] = rotated_array[1] + center_y
     rotated_array[2] = rotated_array[2] + center_z
@@ -127,9 +134,7 @@ def transform(landmark, left_shoulder, right_shoulder):
     normalized_y = rotated_array[1] / inter_shoulder_distance
     normalized_z = rotated_array[2] / inter_shoulder_distance
     # return normalized_x, normalized_y, normalized_z
-    print("Rotated coordinates:", rotated_array[0], rotated_array[1], rotated_array[2])
-    print("Non rotated coordinates:", landmark.x, landmark.y, landmark.z)
-    return rotated_array[0], rotated_array[1], rotated_array[2], angle_of_rotation_of_body, inter_shoulder_distance
+    return rotated_array[0], rotated_array[1], rotated_array[2], angle_of_rotation
 
 
 	
@@ -185,16 +190,17 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		left_ear = landmarks[7]
 		right_ear = landmarks[8]
 
-		list_of_landmarks = [nose,left_shoulder, right_shoulder, left_ear, right_ear] 
-		transformed_features = [transform(lm, left_shoulder, right_shoulder) for lm in list_of_landmarks]
+		list_of_landmarks = [nose, left_ear, right_ear, left_shoulder, right_shoulder] 
+		transformed_features = [transform(lm, left_shoulder, right_shoulder) for lm in list_of_landmarks[1:]]
+		nose_feature = transform(nose, left_shoulder, right_shoulder, is_nose=True)
 
 
 		# Convert to pixels
-		nose_p = to_pixel(transformed_features[0], w, h)
-		ls_p = to_pixel(transformed_features[1], w, h)
-		rs_p = to_pixel(transformed_features[2], w, h)
-		le_p = to_pixel(transformed_features[3], w, h)
-		re_p = to_pixel(transformed_features[4], w, h)
+		nose_p = to_pixel(nose_feature, w, h)
+		le_p = to_pixel(transformed_features[0], w, h)
+		re_p = to_pixel(transformed_features[1], w, h)
+		ls_p = to_pixel(transformed_features[2], w, h)
+		rs_p = to_pixel(transformed_features[3], w, h)
 
 		#Non-transformed pixel coordinates for depth features
 		nose_p_nontransformed = to_pixel_nontransformed(nose, w, h)
@@ -274,6 +280,8 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# Display text
 		# -----------------------------
 		cv2.putText(frame, f"Angle {180 / math.pi * transformed_features[0][3]:.2f}", (30, 50),
+					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+		cv2.putText(frame, f"Angle {((180 / math.pi) * transformed_features[0][4]):.2f}", (30, 100),
 					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 		# cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
 		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
