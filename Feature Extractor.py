@@ -13,7 +13,7 @@ import datetime
 # -----------------------------
 # Setup MediaPipe
 # -----------------------------
-model_path = 'C:\\Users\\Henry\\OneDrive\\Desktop\\Project\\The-Posture-Project-\\pose_landmarker_full.task'
+model_path = 'C:\\Users\\ChuTs\\OneDrive - Government of Ontario\\Desktop\\Current Projects\\The-Posture-Project-\\pose_landmarker_full.task'
 
 BaseOptions = mp.tasks.BaseOptions
 PoseLandmarker = mp.tasks.vision.PoseLandmarker
@@ -40,6 +40,9 @@ csv_file = f"posture_data_{height}.csv"
 with open(csv_file, "w", newline="") as f:
 	writer = csv.writer(f)
 	writer.writerow([
+		"normalized_shoulderwidth_1",
+		"normalized_shoulderwidth_2",
+		"shoulderwidth_nontransformed",
 		"normalized_neck_length",
 		"nose_depth",
 		"neck_angle",
@@ -101,8 +104,8 @@ def transform(landmark, left_shoulder, right_shoulder, is_nose = False):
     else:
         angle_of_rotation = math.atan2(
         (left_shoulder.z - right_shoulder.z), 
-        (left_shoulder.x - right_shoulder.x)
-    )
+        (left_shoulder.x - right_shoulder.x) 
+    ) 
     
     # 3. Shift the current landmark so the shoulder center is (0,0,0)
     v = np.array([
@@ -117,6 +120,7 @@ def transform(landmark, left_shoulder, right_shoulder, is_nose = False):
     rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
     rotated_array[1] = rotated_array[1] + center_y
     rotated_array[2] = rotated_array[2] + center_z
+
     
     # 5. Calculate 3D inter-shoulder distance for scale normalization
     inter_shoulder_distance = math.sqrt(
@@ -173,7 +177,6 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# Check if pose_landmarks exists and is not empty
 		if landmarksorg.pose_landmarks and len(landmarksorg.pose_landmarks) > 0:
 			landmarks = landmarksorg.pose_landmarks[0]
-			realworld_landmarks = landmarksorg.pose_world_landmarks[0]
 			
 			# Put the rest of your posture processing code here
 			# e.g., neck_y_component_length = ratio * neck_vector[1]
@@ -190,9 +193,10 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		left_ear = landmarks[7]
 		right_ear = landmarks[8]
 
-		list_of_landmarks = [nose, left_ear, right_ear, left_shoulder, right_shoulder] 
-		transformed_features = [transform(lm, left_shoulder, right_shoulder) for lm in list_of_landmarks[1:]]
+		list_of_landmarks = [left_ear, right_ear, left_shoulder, right_shoulder] 
+		transformed_features = [transform(lm, left_shoulder, right_shoulder) for lm in list_of_landmarks]
 		nose_feature = transform(nose, left_shoulder, right_shoulder, is_nose=True)
+
 
 
 		# Convert to pixels
@@ -233,7 +237,8 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# -----------------------------
 		# Feature 3: Shoulder width
 		# -----------------------------
-		shoulder_width = abs(ls_p[0] - rs_p[0])
+		shoulder_width = math.sqrt((ls_p[0] - rs_p[0])**2 + (ls_p[1] - rs_p[1])**2)
+		shoulder_width_nontransformed = ls_p_nontransformed[0] - rs_p_nontransformed[0]
 
 
 		# -----------------------------
@@ -274,23 +279,19 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		cv2.line(frame, tuple(shoulder_mid.astype(int)), tuple(nose_p), color, 2)
 		cv2.line(frame, tuple(shoulder_mid_nontransformed.astype(int)), tuple(nose_p_nontransformed), (255, 255, 0), 2)
 		cv2.line(frame, tuple(ls_p), tuple(rs_p), (255, 0, 0), 2)
+		cv2.line(frame, tuple(ls_p_nontransformed), tuple(rs_p_nontransformed), (255, 255, 0), 2)
 
 
 		# -----------------------------
 		# Display text
 		# -----------------------------
-		cv2.putText(frame, f"Angle {180 / math.pi * transformed_features[0][3]:.2f}", (30, 50),
+		cv2.putText(frame, f"Angle {180 / math.pi * transformed_features[3][3]:.2f}", (30, 50),
 					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-		cv2.putText(frame, f"Angle {((180 / math.pi) * transformed_features[0][4]):.2f}", (30, 100),
-					cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-		# cv2.putText(frame, f"Nose depth: {nose_depth:.2f}", (30, 130),
-		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		# cv2.putText(frame, f"Shoulder 1 depth: {left_shoulder_depth:.2f}", (30, 170),
-		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		# cv2.putText(frame, f"Shoulder 2 depth: {right_shoulder_depth:.2f}", (30, 210),
-		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-		# cv2.putText(frame, f"neck y component: {neck_vector[1]:.2f}", (30, 250),
-		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+		cv2.putText(frame, f"Shoulder width transformed: {shoulder_width:.2f}", (30, 170),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+		cv2.putText(frame, f"Shoulder width: {shoulder_width_nontransformed:.2f}", (30, 200),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+	
 
 		# -----------------------------
 		# Save the features
@@ -298,6 +299,9 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		with open(csv_file, "a", newline="") as f:
 			writer = csv.writer(f)
 			writer.writerow([
+				shoulder_width_nontransformed/math.sin(90 - abs(transformed_features[3][3]))**2,
+				shoulder_width_nontransformed/math.sin(90 - abs(transformed_features[3][3])),
+				shoulder_width_nontransformed,
 				transformed_features[0][1],  # Normalized neck length (y component)
 				nose.z,
 				neck_angle,
