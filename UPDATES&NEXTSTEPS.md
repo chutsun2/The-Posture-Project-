@@ -5,4 +5,11 @@ Right now the feature extraction tool works but is flawed for the following reas
 
 Next steps:
 - Find another way of calculating the angle between the neck and the shoulders.
-- Maybe assign a weight of when angles matter vs the neck length and shoulder length ratio. 
+- Maybe assign a weight of when angles matter vs the neck length and shoulder length ratio.
+
+**2026-06-23:**
+Seem to able to normalize neck length when facing different directions. However, Mediapipe seems to not be able to give accurate shoulder width measures when not facing the camera.
+I believe this is due to inaccurate depth measures.
+
+Next steps:
+- Try out other depth estimation models, e.g depth-pro by apple
