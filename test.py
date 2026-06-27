@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import depth_pro
+import torch.nn.functional as F
 
 # Device setup
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -18,11 +19,20 @@ image, _, f_px = depth_pro.load_rgb(r"C:\Users\ChuTs\OneDrive - Government of On
 
 # Transform + send to GPU
 image = transform(image)
+# Load image
+image, _, f_px = depth_pro.load_rgb(r"C:\Users\ChuTs\OneDrive - Government of Ontario\Desktop\Current Projects\The-Posture-Project-\ml-depth-pro\data\maltese-portrait.jpg")
 
-# Inference
-with torch.no_grad():
-    prediction = model.infer(image, f_px=f_px)
+# Transform + send to GPU
+image = transform(image)
+image = image.unsqueeze(0)
+image = F.interpolate(
+    image,
+    size=(1536, 1536),
+    mode=interpolation_mode,
+    align_corners=False,
+)
+torch.onnx.export(model, image, r"C:\Users\ChuTs\OneDrive - Government of Ontario\Desktop\Current Projects\The-Posture-Project-\model.onnx")
 
-depth = prediction["depth"]
+import os
+print(os.getcwd())
 
-print(depth)
