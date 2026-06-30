@@ -13,3 +13,9 @@ I believe this is due to inaccurate depth measures.
 
 Next steps:
 - Try out other depth estimation models, e.g depth-pro by apple
+
+**2026-06-27:**
+Depth models were not suitable for realtime generation of depth as it takes too long. I will continue using Mediapipe for depth estimation, but will use world landmarks instead of normalized landmarks
+
+Next steps:
+- Obtain features with world landmarks
