@@ -43,12 +43,9 @@ csv_file = f"posture_data_{height}.csv"
 with open(csv_file, "w", newline="") as f:
 	writer = csv.writer(f)
 	writer.writerow([
-		"nose_depth",
-		"neck_angle",
-		"shoulder_width",
-		"nose_depth",
-		"left_shoulder_depth",
-		"right_shoulder_depth"
+		"intershoulder_distance",
+		"necklength_y",
+		"slouchangle"
 	])
 
 # -----------------------------
@@ -67,6 +64,13 @@ def rotate_y(v, theta):
 
 def lm_to_vec(lm):
     return np.array([lm.x, lm.y, lm.z], dtype=float)
+
+def angle_between(v1, v2):
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+    return np.degrees(np.arccos(np.clip(np.dot(v1, v2), -1.0, 1.0)))
+
+
 
   
 # -----------------------------
@@ -119,40 +123,7 @@ def transform_shoulders(landmark, left_shoulder, right_shoulder, is_nose = False
     normalized_y = rotated_array[1] / inter_shoulder_distance
     normalized_z = rotated_array[2] / inter_shoulder_distance
     # return normalized_x, normalized_y, normalized_z
-    return rotated_array[0], rotated_array[1], rotated_array[2], angle_of_rotation
-
-def transform_nose(nose, left_shoulder, right_shoulder):
-    # 1. Calculate the center point between shoulders to use as our local origin (0,0,0)
-    center_x = (left_shoulder.x + right_shoulder.x) / 2
-    center_y = (left_shoulder.y + right_shoulder.y) / 2
-    center_z = (left_shoulder.z + right_shoulder.z) / 2
-    
-    # 2. Calculate rotation angle based on shoulders
-    # Added math.atan2 for stability to avoid division-by-zero errors if shoulders align vertically
-	
-    
-    angle_of_rotation = math.atan2(
-		(nose.z - center_z), 
-		(nose.x - center_x)
-	) + math.pi/2  # +90 degrees to align with vertical axis
-
-    
-    # 3. Shift the current landmark so the shoulder center is (0,0,0)
-    v = np.array([
-        nose.x - center_x, 
-        nose.y - center_y, 
-        nose.z - center_z
-    ])
-    
-    # 4. Rotate around our new local origin
-    # We use negative angle to 'undo' your body's rotation and face the camera straight
-    rotated_array = rotate_y(v, angle_of_rotation)
-    rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
-    rotated_array[1] = rotated_array[1] + center_y
-    rotated_array[2] = rotated_array[2] + center_z
-
-    # return normalized_x, normalized_y, normalized_z
-    return rotated_array[0], rotated_array[1], rotated_array[2], angle_of_rotation
+    return np.array([rotated_array[0], rotated_array[1], rotated_array[2]]), angle_of_rotation
 
 
 	
@@ -215,97 +186,86 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 
 
 
-
-		#-----------------------------
-		# Transformed Features
-		#-----------------------------
-
-		#Transform landmarks to a local coordinate system based on shoulders
-		transformed_nose = transform_nose(nose, left_shoulder, right_shoulder)
-		transformed_left_shoulder = transform_shoulders(left_shoulder, left_shoulder, right_shoulder)
-		transformed_right_shoulder = transform_shoulders(right_shoulder, left_shoulder, right_shoulder)
-		
-	
-
 		# -----------------------------
-		# Feature 1: Neck vector & angle
+		# Feature 1: Neck vector 
 		# -----------------------------
 		shoulder_mid = (lm_to_vec(left_shoulder) + lm_to_vec(right_shoulder)) / 2
 		neck_vector = lm_to_vec(nose) - shoulder_mid
-		
 
+	
 
 		# -----------------------------
 		# Feature 2: Neck length
 		# -----------------------------
-		neck_length = np.linalg.norm(neck_vector)
+		neck_length_y = neck_vector[1]
+
+
+		# -----------------------------
+		# Feature 2: Neck Angle
+		# -----------------------------
+		vertical = np.array([0, -1, 0])
+		slouch_angle = angle_between(vertical, neck_vector)
 
 		# -----------------------------
 		# Feature 3: Shoulder width
 		# -----------------------------
 		inter_shoulder_distance = math.sqrt(
         (left_shoulder.x - right_shoulder.x)**2 + 
-        (left_shoulder.y - right_shoulder.y)**2 + 
-        (left_shoulder.z - right_shoulder.z)**2)
+        (left_shoulder.y - right_shoulder.y)**2)
 
 
-		# -----------------------------
-		# Feature 4: Depth
-		# -----------------------------
-		nose_depth = nose.z
-		left_shoulder_depth = left_shoulder.z
-		right_shoulder_depth = right_shoulder.z
 
 
 
 		# -----------------------------
 		# Draw lines (visual debugging)
 		# -----------------------------
-		# cv2.line(frame, tuple(shoulder_mid.astype(int)), tuple(nose.astype(int)), color, 2)
-		# cv2.line(frame, tuple((left_shoulder - right_shoulder)/2), tuple(nose), color, 2)
-		# cv2.line(frame, tuple(left_shoulder.astype(int)), tuple(right_shoulder.astype(int)), (255, 0, 0), 2)
-		# cv2.line(frame, tuple(left_shoulder.astype(int)), tuple(right_shoulder.astype(int)), (255, 255, 0), 2)
+		# cv2.line(frame, tuple(0,0,0), tuple(vertical.astype(int)), (255, 255, 0), 2)
 
 
+	
 		# -----------------------------
 		# Display text
 		# -----------------------------
-		cv2.putText(frame, f"Shoulder width transformed: {inter_shoulder_distance:.2f}", (30, 170),
+		cv2.putText(frame, f"Intershoulder distance:{inter_shoulder_distance:.2f}", (30, 170),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2),
+		cv2.putText(frame, f"Neck length:{neck_length_y:.2f}", (30, 210),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+		cv2.putText(frame, f"Slouch angle:{slouch_angle:.2f}", (30, 250),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+		cv2.putText(frame, f"X:{left_shoulder.x:.2f},Y:{left_shoulder.y:.2f}, Z:{left_shoulder.z:.2f}", (30, 280),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+
 		
 	
 
 		# -----------------------------
 		# Save the features
 		# -----------------------------
-		# with open(csv_file, "a", newline="") as f:
-		# 	writer = csv.writer(f)
-		# 	writer.writerow([
-		# 		nose.z,
-		# 		neck_angle,
-		# 		shoulder_width,
-		# 		nose_depth,
-		# 		left_shoulder.z,
-		# 		right_shoulder.z
-		# 	])
+		with open(csv_file, "a", newline="") as f:
+			writer = csv.writer(f)
+			writer.writerow([
+				inter_shoulder_distance,
+				neck_length_y,
+				slouch_angle
+			])
 		
 		cv2.imshow("Posture Detection", frame) 
 
-		# filename = os.path.join(output_dir, f"frame_{count:05d}.jpg")
-		# cv2.imwrite(filename, frame)
+		filename = os.path.join(output_dir, f"frame_{count:05d}.jpg")
+		cv2.imwrite(filename, frame)
 
 
 
-		# count +=1
+		count +=1
 
 
-		# if count == 500:
-		# 	break
-		# 	print("Now slouch")
-		# 	time.sleep(5)  # Give user time to change posture
+		if count == 1000:
+			print("Now slouch")
+			time.sleep(5)  # Give user time to change posture
 		
-		# if count >= 2000:
-		# 	break
+		if count == 2000:
+			break
 
 		if cv2.waitKey(1) & 0xFF == ord("q"):
 			break
