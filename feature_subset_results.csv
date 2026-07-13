@@ -1,0 +1,190 @@
+Model,Features,Num Features,CV_AUC
+Random Forest,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9947734374999999
+Random Forest,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",4,0.99471875
+Random Forest,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.99460546875
+Random Forest,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.994515625
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",5,0.99442578125
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",6,0.9941640625000001
+Random Forest,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9940820312499999
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.99402734375
+Random Forest,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.9940078124999999
+Random Forest,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9940039062499999
+Random Forest,"('necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9935468749999998
+XGBoost,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.993375
+Random Forest,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9932226562500001
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",6,0.993203125
+XGBoost,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",4,0.9930703125000001
+XGBoost,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.99296484375
+Random Forest,"('slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9929335937499999
+XGBoost,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.99287109375
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",5,0.9925234375
+Random Forest,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.99251171875
+XGBoost,"('necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9924999999999999
+Random Forest,"('necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9923554687499999
+XGBoost,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.99230859375
+Random Forest,"('necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9921210937500001
+Random Forest,"('intershoulder_distance', 'necklength_y', 'nose_normalization_factor')",3,0.9917343750000001
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'nose_normalization_factor')",4,0.99172265625
+XGBoost,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9913125
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9911796875000001
+XGBoost,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9911562499999998
+Random Forest,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9911484375
+KNN,"('necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",3,0.99091796875
+KNN,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'nose_normalization_factor')",4,0.9907265625000001
+XGBoost,"('necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.99072265625
+XGBoost,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.99053515625
+XGBoost,"('necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9904492187499999
+Random Forest,"('intershoulder_distance', 'slouchangle', 'nose_normalization_factor')",3,0.9904257812499999
+KNN,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9901914062499999
+Random Forest,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9896601562499999
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'nose_normalization_factor')",4,0.9894570312500001
+XGBoost,"('intershoulder_distance', 'necklength_y', 'nose_normalization_factor')",3,0.9892890624999999
+KNN,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9886874999999999
+KNN,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.98825390625
+XGBoost,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9874609375000001
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",5,0.9873984374999999
+XGBoost,"('slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9870546875
+XGBoost,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9868476562499999
+KNN,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.98676953125
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",6,0.9866484374999999
+XGBoost,"('intershoulder_distance', 'slouchangle', 'nose_normalization_factor')",3,0.9863984374999999
+KNN,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.98607421875
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9858671874999999
+KNN,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",4,0.98584765625
+Random Forest,"('slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.98522265625
+KNN,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",5,0.9848398437499999
+KNN,"('necklength_y', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9843125
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'nose_normalization_factor')",4,0.9841015625
+KNN,"('necklength_y', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.98361328125
+Random Forest,"('intershoulder_distance', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9831992187499999
+Random Forest,"('necklength_y', 'slouchangle', 'nose_normalization_factor')",3,0.98314453125
+KNN,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9830625
+KNN,"('intershoulder_distance', 'necklength_y', 'nose_normalization_factor')",3,0.9822890624999999
+XGBoost,"('necklength_y', 'slouchangle', 'nose_normalization_factor')",3,0.9822031250000001
+Random Forest,"('angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.98158203125
+KNN,"('intershoulder_distance', 'slouchangle', 'nose_normalization_factor')",3,0.9815234374999999
+Random Forest,"('intershoulder_distance', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9815156250000001
+KNN,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.9814921875
+KNN,"('slouchangle', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9812773437499999
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",5,0.9792343750000001
+XGBoost,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.97861328125
+KNN,"('necklength_y', 'slouchangle', 'nose_normalization_factor')",3,0.9774804687499999
+XGBoost,"('slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9771796875
+Random Forest,"('necklength_y', 'nose_normalization_factor')",2,0.9767421875
+XGBoost,"('necklength_y', 'nose_normalization_factor')",2,0.9763945312499999
+Random Forest,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",4,0.9760937499999999
+Random Forest,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.9760390624999999
+KNN,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",4,0.97587109375
+Random Forest,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9743203125
+XGBoost,"('intershoulder_distance', 'angle_of_rotation', 'nose_normalization_factor')",3,0.9738242187500001
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation')",4,0.9734375
+XGBoost,"('intershoulder_distance', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.97316015625
+KNN,"('slouchangle', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.97299609375
+KNN,"('intershoulder_distance', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9723242187499999
+KNN,"('necklength_y', 'nose_normalization_factor')",2,0.9721757812499998
+KNN,"('angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.97183203125
+Random Forest,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.9715703124999999
+XGBoost,"('angle_of_rotation', 'normalization_factor_distance', 'nose_normalization_factor')",3,0.9710351562499999
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",5,0.97086328125
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance')",4,0.97071875
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",5,0.9706875
+XGBoost,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.9698046875000002
+Random Forest,"('angle_of_rotation', 'nose_normalization_factor')",2,0.96979296875
+XGBoost,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",4,0.96932421875
+KNN,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",4,0.96901171875
+Random Forest,"('necklength_y', 'slouchangle', 'angle_of_rotation')",3,0.96812109375
+Random Forest,"('slouchangle', 'nose_normalization_factor')",2,0.96738671875
+XGBoost,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",3,0.96718359375
+XGBoost,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.9668906250000001
+KNN,"('necklength_y', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.96669140625
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance')",4,0.96612890625
+Random Forest,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation')",3,0.9658789062500001
+Random Forest,"('normalization_factor_distance', 'nose_normalization_factor')",2,0.9657109374999999
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'normalization_factor_distance')",4,0.9655507812499999
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation')",4,0.9649023437500001
+XGBoost,"('angle_of_rotation', 'nose_normalization_factor')",2,0.9648125000000001
+Random Forest,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9645390624999999
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle', 'angle_of_rotation')",4,0.9644375000000001
+Random Forest,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance')",3,0.96426953125
+Random Forest,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation')",3,0.9642421875
+XGBoost,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation')",3,0.9634609375000001
+XGBoost,"('slouchangle', 'nose_normalization_factor')",2,0.963265625
+XGBoost,"('necklength_y', 'slouchangle', 'angle_of_rotation')",3,0.9631210937500001
+KNN,"('intershoulder_distance', 'angle_of_rotation', 'nose_normalization_factor')",3,0.96072265625
+Random Forest,"('intershoulder_distance', 'necklength_y', 'slouchangle')",3,0.9605937499999999
+KNN,"('angle_of_rotation', 'nose_normalization_factor')",2,0.9593671875
+XGBoost,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance')",3,0.95903515625
+KNN,"('necklength_y', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9587851562499999
+XGBoost,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation')",3,0.9586875000000001
+KNN,"('necklength_y', 'slouchangle', 'angle_of_rotation')",3,0.9582265624999999
+XGBoost,"('normalization_factor_distance', 'nose_normalization_factor')",2,0.95771484375
+XGBoost,"('necklength_y', 'angle_of_rotation')",2,0.9575234375000001
+XGBoost,"('intershoulder_distance', 'necklength_y', 'slouchangle')",3,0.95728125
+Random Forest,"('necklength_y', 'slouchangle', 'normalization_factor_distance')",3,0.9568046875
+XGBoost,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9564335937500001
+KNN,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",4,0.95635546875
+KNN,"('intershoulder_distance', 'necklength_y', 'normalization_factor_distance')",3,0.95618359375
+Random Forest,"('necklength_y', 'angle_of_rotation')",2,0.9550234375000001
+KNN,"('slouchangle', 'nose_normalization_factor')",2,0.9542695312500001
+KNN,"('intershoulder_distance', 'necklength_y', 'slouchangle')",3,0.9530820312499999
+KNN,"('intershoulder_distance', 'necklength_y', 'angle_of_rotation')",3,0.9523164062500001
+XGBoost,"('intershoulder_distance', 'necklength_y')",2,0.9521484374999998
+Random Forest,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance')",3,0.95147265625
+XGBoost,"('necklength_y', 'slouchangle', 'normalization_factor_distance')",3,0.9504531249999999
+KNN,"('normalization_factor_distance', 'nose_normalization_factor')",2,0.94993359375
+Random Forest,"('intershoulder_distance', 'nose_normalization_factor')",2,0.9491796875
+Random Forest,"('intershoulder_distance', 'necklength_y')",2,0.94776953125
+XGBoost,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance')",3,0.9468203125000001
+KNN,"('intershoulder_distance', 'slouchangle', 'angle_of_rotation')",3,0.9464765625
+XGBoost,"('slouchangle', 'angle_of_rotation')",2,0.94596484375
+Random Forest,"('slouchangle', 'angle_of_rotation')",2,0.9452031249999999
+KNN,"('necklength_y', 'angle_of_rotation')",2,0.94463671875
+XGBoost,"('necklength_y', 'normalization_factor_distance')",2,0.9446015624999999
+XGBoost,"('intershoulder_distance', 'nose_normalization_factor')",2,0.9439257812499999
+KNN,"('slouchangle', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9425546875
+KNN,"('necklength_y', 'slouchangle', 'normalization_factor_distance')",3,0.9422421875
+Random Forest,"('necklength_y', 'normalization_factor_distance')",2,0.9390468750000001
+XGBoost,"('intershoulder_distance', 'slouchangle')",2,0.93576171875
+KNN,"('intershoulder_distance', 'slouchangle', 'normalization_factor_distance')",3,0.9342070312499999
+KNN,"('intershoulder_distance', 'necklength_y')",2,0.9330351562499999
+KNN,"('intershoulder_distance', 'nose_normalization_factor')",2,0.9294726562500001
+Random Forest,"('intershoulder_distance', 'slouchangle')",2,0.9281484375
+KNN,"('slouchangle', 'angle_of_rotation')",2,0.9241015625
+KNN,"('necklength_y', 'normalization_factor_distance')",2,0.923765625
+XGBoost,"('necklength_y', 'slouchangle')",2,0.921046875
+XGBoost,"('slouchangle', 'normalization_factor_distance')",2,0.9191445312500001
+Random Forest,"('necklength_y', 'slouchangle')",2,0.9177421875
+Random Forest,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9176249999999999
+KNN,"('intershoulder_distance', 'slouchangle')",2,0.9175546874999998
+Random Forest,"('slouchangle', 'normalization_factor_distance')",2,0.9160703124999999
+KNN,"('necklength_y', 'slouchangle')",2,0.9088046875
+XGBoost,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9066875
+KNN,"('intershoulder_distance', 'angle_of_rotation', 'normalization_factor_distance')",3,0.9025234375
+KNN,"('slouchangle', 'normalization_factor_distance')",2,0.8972109374999999
+XGBoost,"('nose_normalization_factor',)",1,0.89408984375
+KNN,"('nose_normalization_factor',)",1,0.87135546875
+KNN,"('angle_of_rotation', 'normalization_factor_distance')",2,0.8638984375
+XGBoost,"('intershoulder_distance', 'angle_of_rotation')",2,0.862890625
+XGBoost,"('necklength_y',)",1,0.86006640625
+Random Forest,"('angle_of_rotation', 'normalization_factor_distance')",2,0.8591093750000003
+Random Forest,"('nose_normalization_factor',)",1,0.85811328125
+XGBoost,"('angle_of_rotation', 'normalization_factor_distance')",2,0.85679296875
+Random Forest,"('intershoulder_distance', 'angle_of_rotation')",2,0.8556796875
+KNN,"('necklength_y',)",1,0.8537734374999999
+KNN,"('intershoulder_distance', 'angle_of_rotation')",2,0.83860546875
+Random Forest,"('necklength_y',)",1,0.837515625
+XGBoost,"('intershoulder_distance', 'normalization_factor_distance')",2,0.8136093750000001
+Random Forest,"('intershoulder_distance', 'normalization_factor_distance')",2,0.8023906249999999
+XGBoost,"('angle_of_rotation',)",1,0.800984375
+XGBoost,"('slouchangle',)",1,0.7998046875
+KNN,"('intershoulder_distance', 'normalization_factor_distance')",2,0.7942265624999999
+KNN,"('slouchangle',)",1,0.76237890625
+KNN,"('angle_of_rotation',)",1,0.760421875
+Random Forest,"('angle_of_rotation',)",1,0.7437304687499999
+Random Forest,"('slouchangle',)",1,0.742625
+XGBoost,"('normalization_factor_distance',)",1,0.7422226562500001
+XGBoost,"('intershoulder_distance',)",1,0.7236757812500001
+KNN,"('normalization_factor_distance',)",1,0.71258203125
+Random Forest,"('normalization_factor_distance',)",1,0.6903828125
+KNN,"('intershoulder_distance',)",1,0.6846796875
+Random Forest,"('intershoulder_distance',)",1,0.6675390625000001

@@ -45,7 +45,10 @@ with open(csv_file, "w", newline="") as f:
 	writer.writerow([
 		"intershoulder_distance",
 		"necklength_y",
-		"slouchangle"
+		"slouchangle",
+		"angle_of_rotation",
+		"normalization_factor_distance",
+		"nose_normalization_factor"
 	])
 
 # -----------------------------
@@ -77,53 +80,87 @@ def angle_between(v1, v2):
 # Transformation Functions
 # -----------------------------
 
-def transform_shoulders(landmark, left_shoulder, right_shoulder, is_nose = False):
-    # 1. Calculate the center point between shoulders to use as our local origin (0,0,0)
-    center_x = (left_shoulder.x + right_shoulder.x) / 2
-    center_y = (left_shoulder.y + right_shoulder.y) / 2
-    center_z = (left_shoulder.z + right_shoulder.z) / 2
+# def transform_shoulders(landmark, left_shoulder, right_shoulder, is_nose = False):
+#     # 1. Calculate the center point between shoulders to use as our local origin (0,0,0)
+#     center_x = (left_shoulder.x + right_shoulder.x) / 2
+#     center_y = (left_shoulder.y + right_shoulder.y) / 2
+#     center_z = (left_shoulder.z + right_shoulder.z) / 2
     
-    # 2. Calculate rotation angle based on shoulders
-    # Added math.atan2 for stability to avoid division-by-zero errors if shoulders align vertically
+#     # 2. Calculate rotation angle based on shoulders
+#     # Added math.atan2 for stability to avoid division-by-zero errors if shoulders align vertically
 	
     
-    angle_of_rotation = math.atan2(
-        (left_shoulder.z - right_shoulder.z), 
-        (left_shoulder.x - right_shoulder.x) 
-    ) 
+#     angle_of_rotation = math.atan2(
+#         (left_shoulder.z - right_shoulder.z), 
+#         (left_shoulder.x - right_shoulder.x) 
+#     ) 
     
-    # 3. Shift the current landmark so the shoulder center is (0,0,0)
-    v = np.array([
-        landmark.x - center_x, 
-        landmark.y - center_y, 
-        landmark.z - center_z
-    ])
+#     # 3. Shift the current landmark so the shoulder center is (0,0,0)
+#     v = np.array([
+#         landmark.x - center_x, 
+#         landmark.y - center_y, 
+#         landmark.z - center_z
+#     ])
     
-    # 4. Rotate around our new local origin
-    # We use negative angle to 'undo' your body's rotation and face the camera straight
-    rotated_array = rotate_y(v, angle_of_rotation)
-    rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
-    rotated_array[1] = rotated_array[1] + center_y
-    rotated_array[2] = rotated_array[2] + center_z
+#     # 4. Rotate around our new local origin
+#     # We use negative angle to 'undo' your body's rotation and face the camera straight
+#     rotated_array = rotate_y(v, angle_of_rotation)
+#     rotated_array[0] = rotated_array[0] + center_x  # Shift back to original coordinate space
+#     rotated_array[1] = rotated_array[1] + center_y
+#     rotated_array[2] = rotated_array[2] + center_z
 
     
-    # 5. Calculate 3D inter-shoulder distance for scale normalization
-    inter_shoulder_distance = math.sqrt(
-        (left_shoulder.x - right_shoulder.x)**2 + 
-        (left_shoulder.y - right_shoulder.y)**2 + 
-        (left_shoulder.z - right_shoulder.z)**2
-    )
+#     # 5. Calculate 3D inter-shoulder distance for scale normalization
+#     inter_shoulder_distance = math.sqrt(
+#         (left_shoulder.x - right_shoulder.x)**2 + 
+#         (left_shoulder.y - right_shoulder.y)**2 + 
+#         (left_shoulder.z - right_shoulder.z)**2
+#     )
     
-    # Prevent division by zero just in case MediaPipe glitches
-    if inter_shoulder_distance == 0:
-        inter_shoulder_distance = 1e-6
+#     # Prevent division by zero just in case MediaPipe glitches
+#     if inter_shoulder_distance == 0:
+#         inter_shoulder_distance = 1e-6
         
-    # 6. Normalize by the shoulder width
-    normalized_x = rotated_array[0] / inter_shoulder_distance
-    normalized_y = rotated_array[1] / inter_shoulder_distance
-    normalized_z = rotated_array[2] / inter_shoulder_distance
-    # return normalized_x, normalized_y, normalized_z
-    return np.array([rotated_array[0], rotated_array[1], rotated_array[2]]), angle_of_rotation
+#     # 6. Normalize by the shoulder width
+#     normalized_x = rotated_array[0] / inter_shoulder_distance
+#     normalized_y = rotated_array[1] / inter_shoulder_distance
+#     normalized_z = rotated_array[2] / inter_shoulder_distance
+#     # return normalized_x, normalized_y, normalized_z
+#     return np.array([rotated_array[0], rotated_array[1], rotated_array[2]]), angle_of_rotation
+
+def distance_normalization_factor(left_shoulder, right_shoulder, nose, is_nose = False):
+	if not is_nose:
+		inter_shoulder_distance = math.sqrt(
+			(left_shoulder.x - right_shoulder.x)**2 + 
+			(left_shoulder.y - right_shoulder.y)**2 + 
+			(left_shoulder.z - right_shoulder.z)**2
+		)
+		
+		# Prevent division by zero just in case MediaPipe glitches
+		if inter_shoulder_distance == 0:
+			inter_shoulder_distance = 1e-6
+		
+		return inter_shoulder_distance
+	
+	else:
+		center_x = (left_shoulder.x + right_shoulder.x) / 2
+		center_y = (left_shoulder.y + right_shoulder.y) / 2
+		# center_z = (left_shoulder.z + right_shoulder.z) / 2
+
+		nose_distance = math.sqrt(
+			(nose.x - center_x)**2 + 
+			(nose.y - center_y)**2 
+			# + (nose.z - center_z)**2
+		)
+
+		return nose_distance
+
+def rotation_normalization_factor(left_shoulder, right_shoulder):
+	angle_of_rotation = math.atan2(
+		(left_shoulder.z - right_shoulder.z), 
+		(left_shoulder.x - right_shoulder.x) 
+	) 
+	return angle_of_rotation
 
 
 	
@@ -166,6 +203,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		# Check if pose_landmarks exists and is not empty
 		if landmarksorg.pose_landmarks and len(landmarksorg.pose_landmarks) > 0:
 			landmarks = landmarksorg.pose_world_landmarks[0]
+			landmarks_non_world = landmarksorg.pose_landmarks[0]
 			
 			# Put the rest of your posture processing code here
 			# e.g., neck_y_component_length = ratio * neck_vector[1]
@@ -183,6 +221,18 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		right_shoulder = landmarks[12]
 		left_ear = landmarks[7]
 		right_ear = landmarks[8]
+
+		#Key ladmarks for non-world coordinates
+		nose_non_world = landmarks_non_world[0]
+		left_shoulder_non_world = landmarks_non_world[11]
+		right_shoulder_non_world = landmarks_non_world[12]
+
+		normalization_factor_distance = distance_normalization_factor(left_shoulder_non_world, right_shoulder_non_world, nose_non_world, is_nose=False)
+		normalization_factor_nose = distance_normalization_factor(left_shoulder_non_world, right_shoulder_non_world, nose_non_world, is_nose=True)
+		angle_of_rotation = rotation_normalization_factor(left_shoulder_non_world, right_shoulder_non_world)
+	
+
+		
 
 
 
@@ -247,7 +297,10 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 			writer.writerow([
 				inter_shoulder_distance,
 				neck_length_y,
-				slouch_angle
+				slouch_angle,
+				angle_of_rotation,
+				normalization_factor_distance,
+				normalization_factor_nose,
 			])
 		
 		cv2.imshow("Posture Detection", frame) 
@@ -263,6 +316,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
 		if count == 1000:
 			print("Now slouch")
 			time.sleep(5)  # Give user time to change posture
+			
 		
 		if count == 2000:
 			break
